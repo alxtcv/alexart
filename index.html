@@ -207,6 +207,143 @@
       <button onclick="saveCanvas()">Save Image</button>
     </div>
   </div>
+  <script>
+const canvas = document.getElementById('drawCanvas');
+const ctx = canvas.getContext('2d');
+
+let drawing = false;
+let eraser = false;
+let brushColor = 'black';
+let brushSize = 5;
+
+// Initial canvas size
+canvas.width = 500;
+canvas.height = 400;
+
+// Create control panel dynamically
+const drawContainer = canvas.parentElement;
+const controlPanel = document.createElement('div');
+controlPanel.style.marginBottom = '10px';
+controlPanel.style.display = 'flex';
+controlPanel.style.alignItems = 'center';
+controlPanel.style.gap = '10px';
+
+// Brush color picker
+const colorLabel = document.createElement('span');
+colorLabel.innerText = 'Brush color: ';
+const colorInput = document.createElement('input');
+colorInput.type = 'color';
+colorInput.value = brushColor;
+colorInput.addEventListener('input', e => { brushColor = e.target.value; eraser = false; });
+
+// Brush size slider
+const sizeLabel = document.createElement('span');
+sizeLabel.innerText = 'Brush size: ';
+const sizeInput = document.createElement('input');
+sizeInput.type = 'range';
+sizeInput.min = 1;
+sizeInput.max = 50;
+sizeInput.value = brushSize;
+sizeInput.addEventListener('input', e => { brushSize = parseInt(e.target.value); });
+
+// Canvas width slider
+const widthLabel = document.createElement('span');
+widthLabel.innerText = 'Canvas width: ';
+const widthSlider = document.createElement('input');
+widthSlider.type = 'range';
+widthSlider.min = 200;
+widthSlider.max = 1000;
+widthSlider.value = canvas.width;
+widthSlider.addEventListener('input', e => {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = e.target.value;
+  tempCanvas.height = canvas.height;
+  tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
+  canvas.width = e.target.value;
+  ctx.drawImage(tempCanvas, 0, 0);
+  fillWhiteBackground();
+});
+
+// Canvas height slider
+const heightLabel = document.createElement('span');
+heightLabel.innerText = 'Canvas height: ';
+const heightSlider = document.createElement('input');
+heightSlider.type = 'range';
+heightSlider.min = 200;
+heightSlider.max = 800;
+heightSlider.value = canvas.height;
+heightSlider.addEventListener('input', e => {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = e.target.value;
+  tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
+  canvas.height = e.target.value;
+  ctx.drawImage(tempCanvas, 0, 0);
+  fillWhiteBackground();
+});
+
+// Append all controls
+controlPanel.appendChild(colorLabel);
+controlPanel.appendChild(colorInput);
+controlPanel.appendChild(sizeLabel);
+controlPanel.appendChild(sizeInput);
+controlPanel.appendChild(widthLabel);
+controlPanel.appendChild(widthSlider);
+controlPanel.appendChild(heightLabel);
+controlPanel.appendChild(heightSlider);
+
+drawContainer.insertBefore(controlPanel, canvas);
+
+// Mouse drawing events
+canvas.addEventListener('mousedown', e => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); });
+canvas.addEventListener('mousemove', e => {
+  if (!drawing) return;
+  if (eraser) {
+    ctx.clearRect(e.offsetX - brushSize, e.offsetY - brushSize, brushSize*2, brushSize*2);
+  } else {
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.strokeStyle = brushColor;
+    ctx.lineWidth = brushSize;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+});
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseout', () => drawing = false);
+
+// Toggle eraser
+function toggleEraser() { eraser = !eraser; }
+
+// Clear canvas
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); fillWhiteBackground(); }
+
+// Fill white background
+function fillWhiteBackground() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
+// Save canvas as PNG with white background
+function saveCanvas() {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.fillStyle = 'white';
+  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.drawImage(canvas, 0, 0);
+  const link = document.createElement('a');
+  link.download = 'drawing.png';
+  link.href = tempCanvas.toDataURL();
+  link.click();
+}
+
+// Initialize white background
+fillWhiteBackground();
+</script>
 </div>
 <script>
   const canvas = document.getElementById('drawCanvas');
@@ -293,5 +430,3 @@
 
 </body>
 </html>
-
-
